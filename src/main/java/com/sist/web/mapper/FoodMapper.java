@@ -31,7 +31,7 @@ public interface FoodMapper {
 		   SELECT no,name,poster,address
 		   FROM food
 		   ORDER BY no ASC
-		   OFFFSET #{start} ROWS FETCH NEXT 12 ROWS ONLY
+		   OFFSET #{start} ROWS FETCH NEXT 12 ROWS ONLY
 		 </select>
 	 */
 	public List<FoodVO> foodListData(int start);
