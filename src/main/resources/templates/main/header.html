@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+>
 <head>
 <meta charset="UTF-8">
 <title>Insert title here</title>
@@ -18,6 +20,7 @@
         <ul class="dropdown-menu">
           <li><a href="#">맛집검색</a></li>
           <li><a href="#">맛집추천</a></li>
+                    <!--  <li sec:authorize=""><a href="#">쉐프</a></li> -->
         </ul>
       </li>
       <li class="dropdown">
@@ -26,7 +29,6 @@
         <ul class="dropdown-menu">
           <li><a href="#">레시피</a></li>
           <li><a href="#">검색</a></li>
-          <li><a href="#">쉐프</a></li>
         </ul>
       </li>
       <li><a href="#">실시간 채팅</a></li>
