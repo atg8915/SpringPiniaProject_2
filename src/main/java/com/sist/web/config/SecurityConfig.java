@@ -147,7 +147,7 @@ public class SecurityConfig {
    public PersistentTokenRepository persistentTokenRepository() {
 	   return null;
    }*/
-   @Bean
+   /*@Bean
    public AuthenticationManager authenticationManager(
       HttpSecurity http,
       BCryptPasswordEncoder passwordEncoder
@@ -159,7 +159,7 @@ public class SecurityConfig {
 	     .userDetailsService(jdbcUserDetailsService())
 	     .passwordEncoder(passwordEncoder());
 	   return builder.build();
-   }
+   }*/
    @Bean
    public JdbcUserDetailsManager jdbcUserDetailsService() {
 	   JdbcUserDetailsManager manager=
