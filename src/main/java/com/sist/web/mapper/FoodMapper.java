@@ -33,6 +33,8 @@ public interface FoodMapper {
 		   ORDER BY no ASC
 		   OFFSET #{start} ROWS FETCH NEXT 12 ROWS ONLY
 		 </select>
+		 dddddd
+		 dddddd
 	 */
 	public List<FoodVO> foodListData(int start);
 	
