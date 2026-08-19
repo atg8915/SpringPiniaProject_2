@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 >
 <head>
 <meta charset="UTF-8">
@@ -20,7 +20,6 @@
         <ul class="dropdown-menu">
           <li><a href="#">맛집검색</a></li>
           <li><a href="#">맛집추천</a></li>
-                    <!--  <li sec:authorize=""><a href="#">쉐프</a></li> -->
         </ul>
       </li>
       <li class="dropdown">
@@ -29,13 +28,30 @@
         <ul class="dropdown-menu">
           <li><a href="#">레시피</a></li>
           <li><a href="#">검색</a></li>
+          <li><a href="#">쉐프</a></li>
         </ul>
       </li>
       <li><a href="#">실시간 채팅</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
-      <li><a href="#"><span class="glyphicon glyphicon-user"></span> 회원가입</a></li>
-      <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> 로그인</a></li>
+      <li sec:authorize="!isAuthenticated()"><a href="#"><span class="glyphicon glyphicon-user"></span> 회원가입</a></li>
+      <li sec:authorize="!isAuthenticated()"><a href="/member/login"><span class="glyphicon glyphicon-log-in"></span> 로그인</a></li>
+      <li sec:authorize="isAuthenticated()">
+      <li sec:authorize="hasRole('ADMIN')">
+        <a href="#">
+            <span sec:authentication="name"></span>(관리자) 로그인되었습니다
+        </a>
+      </li>
+      <li sec:authorize="hasRole('USER')">
+        <a href="#">
+            <span sec:authentication="name"></span>(일반사용자) 로그인되었습니다
+        </a>
+      </li>
+      <li sec:authorize="isAuthenticated()">
+        <a href="/member/logout">
+            <span class="glyphicon glyphicon-log-in"></span> 로그아웃
+        </a>
+    </li>
     </ul>
   </div>
 </nav>
