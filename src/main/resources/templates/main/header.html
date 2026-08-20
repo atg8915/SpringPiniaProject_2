@@ -40,12 +40,17 @@
       <li sec:authorize="isAuthenticated()">
       <li sec:authorize="hasRole('ADMIN')">
         <a href="#">
-            <span sec:authentication="name"></span>(관리자) 로그인되었습니다
+            <span th:text="${session.username}"></span>(관리자) 로그인되었습니다
         </a>
       </li>
       <li sec:authorize="hasRole('USER')">
         <a href="#">
-            <span sec:authentication="name"></span>(일반사용자) 로그인되었습니다
+            <span th:text="${session.username}"></span>(일반사용자) 로그인되었습니다
+        </a>
+      </li>
+      <li sec:authorize="hasRole('MANAGER')">
+        <a href="#">
+            <span th:text="${session.username}"></span>(부관리자) 로그인되었습니다
         </a>
       </li>
       <li sec:authorize="isAuthenticated()">
