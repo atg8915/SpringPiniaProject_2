@@ -2,8 +2,10 @@ package com.sist.web.restcontroller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +29,7 @@ public class CommentRestController {
 		int count=cService.commentRowCount(fno);
 		int totalpage=(int)(Math.ceil(count/10.0));
 		map.put("rList", list);
-		map.put(count, count);
+		map.put("count", count);
 		map.put("curpage", page);
 		map.put("totalpage", totalpage);		
 		return map;
@@ -67,6 +69,43 @@ public class CommentRestController {
 			vo.setName(name);
 			cService.commentInsert(vo);
 			map=commonsData(vo.getPage(), vo.getFno());
+		}catch(Exception ex)
+		{
+			ex.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+		return ResponseEntity.ok(map);
+	}
+	// 삭제
+	@DeleteMapping("/comment/delete_vue")
+	public ResponseEntity<Map> comment_delete(
+			@RequestParam("no") int no,
+			@RequestParam("page") int page,
+			@RequestParam("fno") int fno
+	)
+	{
+		Map map=new HashMap();
+		try
+		{
+			cService.commentDelete(no);
+			map=commonsData(page, fno);
+		}catch(Exception ex)
+		{
+			ex.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+		return ResponseEntity.ok(map);
+	}
+	@PutMapping("/comment/update_vue")
+	public ResponseEntity<Map> comment_update(
+			@RequestBody CommentVO vo
+	)
+	{
+		Map map=new HashMap();
+		try
+		{
+			cService.commentUpdate(vo);
+			map=commonsData(vo.getPage(),vo.getFno());
 		}catch(Exception ex)
 		{
 			ex.printStackTrace();
