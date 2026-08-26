@@ -1,68 +1,128 @@
 package com.sist.web.controller;
 
 import java.security.Principal;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.sist.web.vo.ChatMessage;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
+/*
+ *    1. 사용자가 채팅페이지 접속
+ *    2. Spring Security가 로그인 사용자 확인
+ *    	 =>  <li sec:authorize="isAuthenticated()"><a href="/chat/chat">실시간 채팅</a></li>
+ *    -------------------------------------------- 로그인 여부 확인
+ *    3. ThymeLeaf => LOGIN_USER 생성 : 로그인시 아이디 저장
+ *       <script th:inline="javascript">
+        const LOGIN_USER =
+            /*[[${#authentication.name}]]*\ '';
+		</script>
+	4. Vue.createApp()
+	5. Pinia등록
+	6. useChatStore()
+	7. onMounted()
+			store.loginUser = 사용자 아이디 저장
+					LOGIN_USER
+					
+			store.chatBodyEl = 채팅 Form => DOM
+					chatBody.value
+						=> private / public
+			
+						store.connect()
+	8. SockJS 연결
+	8-1. STOMP 연결 => 
+	9. 서버 채팅 : destination subscribe
+	   채널 => 출력 위치 설정
+	10. 실시간 메세지 대기
+	       |
+	     store.msg => Enter => store.send()
+	      |
+	     STOMP SEND 
+	      |
+	     WebSocket에서 처리
+	      |
+	     상대방 / 전체 메세지 전송
+	      |
+	     STOMP => Message 수신
+		  |
+		 store.message에 추가
+		  |
+		 Vue수행 => 화면에 출력
+
+    
+
+ */
 public class ChatController {
-	private final SimpMessagingTemplate template;
-	/*
-	 *   /topic/public
-	 *   => 접속자 모든 사람에게 메세지 전송
-	 *   => /user/{username}/queue/notify
-	 *      => 1:1 채팅
-	 *   => jackson을 이용해서 메세지를 JSON으로 자동화 처리
-	 */
-	// 전체 채팅 
-	@MessageMapping("/chat/public")
-	@SendTo("/topic/chat")
-	//Principal => Security에서 사용하는 session 데이터
-	public ChatMessage publicChat(ChatMessage msg,HttpSession session)
-	{
-		// 로그인된 사용자 ID
-		msg.setSender((String)session.getAttribute("userid"));
-		// => id 
-		return msg;
-	}
-	// 1:1 채팅
-	@MessageMapping("/chat/private")
-	public void privateChat(ChatMessage msg,HttpSession session)
-	{
-		// 보내는 사람
-		String sender=(String)session.getAttribute("userid");
-		msg.setSender(sender);
-		
-		template.convertAndSendToUser(
-		  msg.getReceiver(),
-		  "/queue/chat",
-		  msg
-		);
-		// 본인 전송
-		template.convertAndSendToUser(
-		  sender,
-		  "/queue/chat",
-		  msg
-		  );
-	}
-	// 상대방에게 전송
-	// 본인에게 전송
-	// 채팅 페이지 이동
-	@GetMapping("/chat")
-	public String chat_chat(Model model) {
-		model.addAttribute("main_html","chat/chat");
-		return "main/main";
-	}
-	// 알림 (X)
+
+	// STOMP => 서버에서 특정한 클라이언트에게 메세지를 전송하는 역할
+	// 1:1 , 알림 => id를 포함
+    private final SimpMessagingTemplate template;
+
+    private final Set<String> onlineUsers =
+            ConcurrentHashMap.newKeySet();
+
+    @MessageMapping("/chat/public")
+    // => HttpSession을 포함하면 안된다 (GetMapping)
+    // 전체 채팅  => /topic
+    @SendTo("/topic/chat")
+    public ChatMessage publicChat(
+            ChatMessage msg,
+            Principal p) {
+    	// HttpSession을 사용할 수 없다
+    	// Spring Security이용 => Principal => Session 형식
+        msg.setSender(p.getName());
+        // /topic/chat => 모든 접속자에게 전송
+        return msg;
+    }
+    // 1:1
+    @MessageMapping("/chat/private")
+    public void privateChat(
+            ChatMessage msg,
+            Principal p) {
+    	// 현재 로그인된 사용자 ID
+        String sender = p.getName();
+        // 서버에서 보내는 사람을 지정
+
+        msg.setSender(sender);
+
+        template.convertAndSendToUser(
+                msg.getReceiver(),
+                "/queue/chat",
+                msg
+        );
+
+        template.convertAndSendToUser(
+                sender,
+                "/queue/chat",
+                msg
+        );
+    }
+    // 접속자 목록 전송
+    @MessageMapping("/chat/join")
+    public void join(Principal p) {
+    	String username=p.getName();
+    	onlineUsers.add(username);
+    	template.convertAndSend("/topic/users",onlineUsers);
+    }
+    // 화면 이동 => RouterController
+    @GetMapping("/chat/chat")
+    public String chat_page(Model model) {
+    	model.addAttribute("main_html","chat/chat");
+        return "chat/chat";
+    }
+
 }
