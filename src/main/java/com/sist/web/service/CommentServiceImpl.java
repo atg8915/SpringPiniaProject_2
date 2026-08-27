@@ -7,6 +7,7 @@ import java.util.*;
 import com.sist.web.mapper.*;
 import com.sist.web.vo.*;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
@@ -42,4 +43,5 @@ public class CommentServiceImpl implements CommentService{
 		// TODO Auto-generated method stub
 		mapper.commentUpdate(vo);
 	}
+
 }

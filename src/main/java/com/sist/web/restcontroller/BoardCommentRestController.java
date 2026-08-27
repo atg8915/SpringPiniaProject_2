@@ -3,6 +3,7 @@ import java.util.*;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BoardCommentRestController {
 	private final BoardCommentMapper bMapper;
-	
+	// => insert/update/delete => 화면 데이터 갱신
+	private final SimpMessagingTemplate template;
 	public Map commonsListData(int page,int board_no)
 	{
 		Map map=new HashMap();
@@ -88,6 +90,42 @@ public class BoardCommentRestController {
 		}catch(Exception ex)
 		{
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+		return ResponseEntity.ok(map);
+	}
+	@PostMapping("/reply/reply_reply_insert_vue")
+	public ResponseEntity<Map> reply_reply_insert(
+			@RequestBody BootCommentVO vo,
+			HttpSession session
+	)
+	{
+		Map map=new HashMap();
+		try
+		{
+			// 상위 댓글의 정보 읽기
+			BootCommentVO pvo=bMapper.boardParentInfoData(vo.getNo());
+			bMapper.boardGroupStepIncrement(pvo.getGroup_id(), pvo.getGroup_step());
+			vo.setGroup_id(pvo.getGroup_id());
+			vo.setGroup_step(pvo.getGroup_step()+1);
+			vo.setGroup_tab(pvo.getGroup_tab()+1);
+			vo.setRoot(vo.getNo());
+			vo.setId((String)session.getAttribute("userid"));
+			vo.setName((String)session.getAttribute("username"));
+			bMapper.boardCommentReReply(vo);
+			bMapper.boardDepthIncrement(vo.getNo());
+			
+			if(!pvo.getId().equals(vo.getId()))
+			{
+				template.convertAndSend(
+					"/sub/notice/"+pvo.getId(),
+					"[☠️댓글 알람]"+vo.getId()+"님이 댓글을 달았습니다!!"
+				);
+			}
+			
+			map=commonsListData(vo.getPage(), vo.getBoard_no());
+		}catch(Exception ex)
+		{
+			ex.printStackTrace();
 		}
 		return ResponseEntity.ok(map);
 	}

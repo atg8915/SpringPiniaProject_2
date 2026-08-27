@@ -18,10 +18,12 @@ h3 {
   text-align: center;
 }
 </style>
-<script>
+<script th:inline="javascript">
 const SESSION_ID=/*[[${session.userid}]]*/''
 const BOARDNO=/*[[${no}]]*/ 0
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -75,8 +77,48 @@ const BOARDNO=/*[[${no}]]*/ 0
       <table class="table" v-else>
         <tbody>
           <tr>
-            <td class="text-center">
-              <h3>댓글이 있습니다</h3>
+            <td>
+              <table class="table" v-for="(rvo,index) in store.list" :key="index">
+                <tr>
+                  <td width="80%" class="text-left">
+                    <span v-if="rvo.group_tab>0">
+                      <span v-for="i in rvo.group_tab">
+                        &nbsp;&nbsp;
+                      </span>
+                      <img src="/image/re_icon.png">
+                    </span>
+                    ◑◐<span>{{rvo.name}}</span>
+                    &nbsp;(<span>{{rvo.dbday}}</span>)
+                  </td>
+                  <td width="20%" class="text-right">
+                    <a class="a-link btn btn-xs btn-info"
+                      v-if="rvo.id===store.sessionId"
+                    >수정</a>
+                    <a class="a-link btn btn-xs btn-warning"
+                      v-if="rvo.id===store.sessionId"
+                    >삭제</a>
+                    <a class="a-link btn btn-xs btn-success"
+                      v-if="store.sessionId!==''"
+                      @click="store.toggleReply(rvo.no)"
+                    >{{store.reReplyNo===rvo.no?'취소':'댓글'}}</a>
+                  </td>
+                </tr>
+                <tr v-if="store.reReplyNo===rvo.no">
+	                <td class="text-center">
+		                <textarea rows="4" cols="50" style="float: left"
+		                   ref="msgRef" v-model="store.replyMsg[rvo.no]"
+		                ></textarea>
+		                <button type="button" class="btn-primary"
+		                  @click="store.boardCommentReplyInsert(rvo.no)"
+		                  style="width:70px; height: 87px;float: left">댓글</button>
+		            </td>
+                </tr>
+                <tr>
+                  <td colspan="2" valign="top">
+                    <pre style="white-space: pre-wrap;">{{rvo.msg}}</pre>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
         </tbody>
@@ -89,13 +131,14 @@ const BOARDNO=/*[[${no}]]*/ 0
                    ref="msgRef" v-model="store.msg"
                 ></textarea>
                 <button type="button" class="btn-primary"
-                        
+                  @click="store.boardCommentInsert(msgRef)"
                   style="width:100px; height: 89px;float: left">댓글</button>
               </td>
             </tr> 
           </tbody>
         </table>
     </div>
+    <th:block th:include="board/toast"></th:block>
   </div>
   <script src="/vue/axios.js"></script>
   <script src="/vue/comment/boardStore.js"></script>
