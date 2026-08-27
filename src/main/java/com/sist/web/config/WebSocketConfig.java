@@ -18,14 +18,16 @@ public class WebSocketConfig
     	// /queue => 개인 메세지 => /my
         registry.enableSimpleBroker(
                 "/topic",
-                "/queue"
+                "/queue",
+                "/sub"
         );
         // 클라이언트 => 서버 요청
         // /app/chat/public => 전체 채팅
         // /app/chat/private => 1:1
         // 생략하고 인식
         registry.setApplicationDestinationPrefixes(
-                "/app"
+                "/app",
+                "/pub"
         );
         //
         registry.setUserDestinationPrefix(
