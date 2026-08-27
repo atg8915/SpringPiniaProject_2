@@ -51,6 +51,14 @@ const useBoardStore=defineStore('board_comment',{
 				})
 			})
 		},
+		disConnection(){
+			if(this.stomp && this.stomp.connected)
+			{
+				this.stomp.disConnection(()=>{
+					console.log("STOMP 종료")
+				})
+			}
+		},
 		setCommentData(res)
 		{
 			console.log(res.data)
