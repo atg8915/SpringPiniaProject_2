@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sist.web.kafka.NoticeProducer;
 import com.sist.web.mapper.BoardCommentMapper;
 import com.sist.web.vo.*;
 
@@ -23,6 +24,7 @@ public class BoardCommentRestController {
 	private final BoardCommentMapper bMapper;
 	// => insert/update/delete => 화면 데이터 갱신
 	private final SimpMessagingTemplate template;
+	private final NoticeProducer noticeProducer;
 	public Map commonsListData(int page,int board_no)
 	{
 		Map map=new HashMap();
@@ -116,10 +118,17 @@ public class BoardCommentRestController {
 			
 			if(!pvo.getId().equals(vo.getId()))
 			{
-				template.convertAndSend(
+				/*template.convertAndSend(
 					"/sub/notice/"+pvo.getId(),
 					"[☠️댓글 알람]"+vo.getId()+"님이 댓글을 달았습니다!!"
-				);
+				);*/
+				ChatMessage notice=
+						new ChatMessage(
+							vo.getId(),			
+							pvo.getId(),
+							"[☠️댓글 알람]"+vo.getId()+"님이 댓글을 달았습니다!!"
+						);
+				noticeProducer.sendNotice(notice);
 			}
 			
 			map=commonsListData(vo.getPage(), vo.getBoard_no());
